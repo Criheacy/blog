@@ -1,0 +1,51 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary-lightest: #1793ff;
+  --ifm-color-primary-lighter: #0083f6;
+  --ifm-color-primary-light: #007deb;
+  --ifm-color-primary: #0072d6;
+  --ifm-color-primary-dark: #0067c1;
+  --ifm-color-primary-darker: #0061b6;
+  --ifm-color-primary-darkest: #005096;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* primary font family */
+  --ifm-font-family-base: -apple-system, "BlinkMacSystemFont", "Roboto",
+    "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC",
+    "WenQuanYi Micro Hei", sans-serif;
+
+  /* font family used in code space */
+  --ifm-font-family-monospace: "Fira Code", "SFMono-Regular", "Menlo", "Monaco",
+    "Consolas", "Liberation Mono", "Courier New", monospace;
+
+  /* disable all shadows */
+  --ifm-toc-border-color: transparent !important;
+  --ifm-global-shadow-lw: none !important;
+  --ifm-global-shadow-md: none !important;
+  --ifm-global-shadow-tl: none !important;
+
+  /* disable left border in admonitions */
+  --ifm-alert-border-left-width: 0px;
+
+  /* darken the background color of note type admonition */
+  --ifm-color-secondary-contrast-background: #f3f4f6;
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme="dark"] {
+  --ifm-color-primary-lightest: #cbe6ff;
+  --ifm-color-primary-lighter: #96ccff;
+  --ifm-color-primary-light: #84c4ff;
+  --ifm-color-primary: #61b3ff;
+  --ifm-color-primary-dark: #3ea2ff;
+  --ifm-color-primary-darker: #2c9aff;
+  --ifm-color-primary-darkest: #0080f6;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
