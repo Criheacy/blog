@@ -80,7 +80,7 @@ GET /user/123123123NotAValidUserId123123
 
 ## 如何解决？
 
-### Ordinary
+### Runtime Exception
 
 网上有很多这之类的解决方案，搜索 global exception handler 就能搜到一大堆类似的处理方法。Spring boot 提供了一种错误的处理方式，针对没有被 catch 的 exception 在返回时可以统一使用这个方法来处理。
 
@@ -114,7 +114,7 @@ HTTP 500 Internal Server Error
 }
 ```
 
-### Advanced
+### Request Exception
 
 按理说上面代码中 `@ExceptionHandler(Exception.class)` 指定的 `Exception` 是所有异常类的基类，应该能够处理所有类型的异常；但它仍有一些异常处理不了，准确地说除了用户处理逻辑代码中出现的运行时异常以外都不会被处理，仍然按照上面的提到的该返回空返回空，该返回 Not Found 返回 Not Found。例如上面说的请求方法错误时，仍然返回 `405 Method Not Allowed` 和空响应体，并且在 Spring log 中会打印这样一条日志：
 
@@ -243,3 +243,64 @@ protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable
 
 而这些 protected 的方法都是可以重载的，只需要在继承于`ResponseEntityExceptionHandler` 的 `GlobalExceptionHandler` 中 `@Override` 这些方法就好。如果想添加某种方法的处理逻辑可以单独重写某种异常的 handler；而如果想规定一下统一格式则只需要重写那个 internal 方法就好。写好之后测试一下，碰到 Method Not Allowed 之类的错误时就可以按照要求返回了。
 
+### Not Found / Unsupported API
+
+现在还剩一种错误没有按照规定格式返回：当请求的 url 没有对应的 Controller 来处理时，服务器会返回 `404 Not Found` 和以下格式的响应体：
+
+  ```JSON
+  {
+      "timestamp": "2022-05-24T08:00:00.000+00:00",
+      "status": 404,
+      "error": "Not Found",
+      "message": "No message available",
+      "path": "/not-exist"
+  }
+  ```
+
+如果 `Accept` 字段被设置为 `text/html` 时，可以从浏览器上看到以下页面：
+
+> <html><body><h1>Whitelabel Error Page</h1><p>This application has no explicit mapping for /error, so you are seeing this as a fallback.</p><div id='created'>Tue May 24 CST 2022</div><div>There was an unexpected error (type=Not Found, status=404).</div><div>No message available</div></body></html>
+
+其实这里已经提示了，针对这种错误要在 /error 这个路径下设置一个 Controller 作为 fallback ，我们只需要按照要求实现一个 Controller 并且用 `@RequestMapping` handle 这个路径即可：
+
+```java
+@RestController
+public class ApplicationErrorController implements ErrorController {
+
+  private static final String ERROR_PATH = "/error";
+
+  @RequestMapping(ERROR_PATH)
+  public ApiResponseCode fallbackHandler() {
+    return ApiResponseCode.UNSUPPORTED_API;
+  }
+}
+```
+
+ 这样就可以收到自定义的信息了：
+
+```json
+{
+    "code": "UNSUPPORTED_API"
+}
+```
+
+这里我一开始尝试过 `@RequestMapping({*})` 这种写法，这代表匹配任意路径；但这样会使前面设置的 Method Not Allowed 失效（因为这里有合适的 handler，Spring 不再认为请求方法不合法）。`/error` 就是 Spring 官方指定的错误页面映射路径，在设计 API 时避免使用这个路径就可以了。
+
+## 另外的小技巧
+
+前面介绍的 `GlobalExceptionHandler` 其实还有别的用法。在 Open Project 中设置了一种自定义的错误类型，叫 `ApiException` （继承于 `Exception` 基类）：
+
+```java
+public class ApiException extends Exception {
+
+  private ApiResponseCode apiResponseCode;
+
+  public ApiException(ApiResponseCode apiResponseCode) {
+    super(apiResponseCode.getCode());
+    this.apiResponseCode = apiResponseCode;
+  }
+}
+
+```
+
+这个 `Exception` 中包含了一个 ApiResponseCode，而在 `GlobalExceptionHandler` 的 `ExceptionHandler` 可以通过 `getApiResponseCode` 将其获取出来，并直接作为返回值。这其实不是一个代码中的「异常」，而是方便编写逻辑时快速返回的「逻辑语法糖」，在业务代码中可以随时使用 `throw new ApiException` 附上此时的返回码来快速在逻辑语句中创建一个响应分支，算是一种提升开发速度的方法。
