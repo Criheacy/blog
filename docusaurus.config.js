@@ -105,7 +105,7 @@ const config = {
       prism: {
         theme: codeBlockTheme.light,
         darkTheme: darkTheme,
-        additionalLanguages: ["java"],
+        additionalLanguages: ["java", "rust"],
       },
     }),
 };
