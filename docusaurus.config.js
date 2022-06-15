@@ -38,6 +38,7 @@ const config = {
         },
         googleAnalytics: {
           trackingID: "G-JP911WYN82",
+          anonymizeIP: false
         },
       }),
     ],

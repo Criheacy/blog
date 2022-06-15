@@ -31,6 +31,8 @@ tags: [sharing]
 
 在程序世界中，一件件衣服就是一个个变量，这里的晾衣杆被称为**「栈内存」**。为什么叫栈内存呢？接着往下看。
 
+
+
 ## 衣架
 
 有一天，你一次性洗了太多的衣服，晾衣杆长度有限，排不开这么多衣服了。
@@ -83,6 +85,8 @@ tags: [sharing]
 
 不过一般情况下，晾衣杆都是处在室内的，就算发生了「内存泄漏」，大不了我们也能从阳台的地上再把衣服捡起来。在这里，阳台被称作**「操作系统」**。操作系统可以提供一层外部的防护，能够回收晾衣架泄漏的内存。
 
+
+
 ## 竹筐
 
 晒的衣服多了，这种衣服掉到地上的事故难免发生。诚然衣服不会掉到楼下，但是掉到地面上衣服还是会脏啊！每次都从地面上捡起来终究不是一个好办法。
@@ -98,6 +102,8 @@ tags: [sharing]
 几天过去了，你已经完全掌握了放置竹筐的位置，闭着眼睛都能把竹筐放好。你甚至不再需要每次抓住衣服，只需要松开衣架的夹子，任凭衣服自己落到竹筐里，最后把竹筐从阳台抱回去就能收回满满一筐晒干的衣服了。
 
 竹筐在程序世界中叫做**「垃圾回收器（Garbage Collector, GC）」**。以 Java 为代表的一部分语言就采用这种机制回收那些触及不到的堆内存。
+
+
 
 ## 床单
 
@@ -116,4 +122,71 @@ tags: [sharing]
 这两个空衣架叫做**「悬垂指针（Dangling Pointer）」**，它们下面夹的衣服已经被收走，可是仍然被挂在晾衣杆上。
 
 简单来说，这种空衣架是因为收衣服时只收了衣服没收衣架导致的。还有一种情况，如果在晒衣服的时候你只挂上了衣架而没挂衣服，晒完也会有一个孤零零的空衣架挂在晾衣杆上。这种情况下的空衣架被叫做**「野指针（Wild Pointer）」**。
+
+
+
+## 代码对照
+
+```cpp
+/* C/C++ */
+
+// 这些是晒在晾衣杆上的衣服，它们占据栈内存空间
+Cloth cloth1 = Cloth("t-shirt");
+Cloth cloth2 = Cloth("jeans");
+Cloth cloth3 = Cloth("jacket");
+
+// 这些则是挂在衣架上的衣服，它们占据堆内存空间
+Cloth* hanger1 = new Cloth("sweater");
+Cloth* hanger2 = new Cloth("pants");
+Cloth* hanger3 = new Cloth("socks");
+
+// 使用 `delete` 来拿回晒干的衣服
+delete hanger1;   // 拿回晒干的毛衣
+delete hanger2;   // 拿回晒干的裤子
+
+// 现在衣架1和衣架2空出来了，你可以把新衣服挂上去
+hanger1 = new Cloth("pajamas");
+// 也可以把衣架从晾衣杆上拿下来
+hanger2 = nullptr;
+
+// 但是如果你忘记拿回衣服，直接把夹子松开拿下衣架，挂着的衣服就会掉到地上
+hanger3 = nullptr;  // 衣架3上还晒着袜子呢！
+```
+
+
+
+```java
+/* Java */
+
+// Java 会放竹筐，因此不用担心衣服掉到地上
+Cloth hanger1 = new Cloth("sweater");
+Cloth hanger2 = new Cloth("pants");
+Cloth hanger3 = new Cloth("socks");
+
+// 不用担心！晒干的衣服被 Java 用竹筐接住了
+hanger1 = null;
+hanger2 = null;
+hanger3 = null;
+```
+
+
+
+```cpp
+/* C/C++ */
+// 床单很长，需要三个衣架
+Cloth* hanger1 = new Cloth("sheet");
+Cloth* hanger2 = hanger1;
+Cloth* hanger3 = hanger1;
+
+// 记得拿回床单时三个衣架都要拿下来！
+delete hanger1;   // 拿回床单
+hanger1 = nullptr;
+hanger2 = nullptr;
+
+// 是不是忘了什么？衣架3还挂在晾衣杆上呢！
+hanger3;	// 无法确定 hanger3 中的值是什么
+
+Cloth* emptyHanger;   // 衣架挂上去但是忘了挂衣服
+// 这也会产生值无法确定的 emptyHanger
+```
 
